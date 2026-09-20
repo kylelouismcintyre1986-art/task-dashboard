@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BeakerIcon, BookOpenIcon, CheckCircleIcon, ChevronRightIcon, ClockIcon,
-  FireIcon, FlaskIcon, HomeIcon, InformationCircleIcon, PlusIcon, ScaleIcon,
+  FireIcon, HomeIcon, InformationCircleIcon, PlusIcon, ScaleIcon,
   ShieldCheckIcon, SparklesIcon, WrenchScrewdriverIcon, XMarkIcon,
 } from '@heroicons/react/24/outline';
 
@@ -67,7 +67,7 @@ function App() {
         <ListProvider>
           <div className="app-shell" data-testid="app">
             <aside className="sidebar">
-              <div className="brand"><div className="brand-mark"><FlaskIcon /></div><div><strong>stillroom</strong><span>fermentation studio</span></div></div>
+              <div className="brand"><div className="brand-mark"><BeakerIcon /></div><div><strong>stillroom</strong><span>fermentation studio</span></div></div>
               <div className="sidebar-label">Workspace</div>
               <nav>{navItems.map(([key, label, Icon]) => <button key={key} className={activeTab === key ? 'nav-item active' : 'nav-item'} onClick={() => setActiveTab(key)}><Icon /><span>{label}</span>{key === 'batches' && <em>{batches.length}</em>}</button>)}</nav>
               <div className="sidebar-spacer" />
@@ -76,7 +76,7 @@ function App() {
             </aside>
 
             <main className="main-content">
-              <header className="topbar"><div className="mobile-brand"><div className="brand-mark"><FlaskIcon /></div><strong>stillroom</strong></div><div className="topbar-actions"><button className="icon-button"><InformationCircleIcon /></button><button className="avatar top-avatar">KL</button></div></header>
+              <header className="topbar"><div className="mobile-brand"><div className="brand-mark"><BeakerIcon /></div><strong>stillroom</strong></div><div className="topbar-actions"><button className="icon-button"><InformationCircleIcon /></button><button className="avatar top-avatar">KL</button></div></header>
               <div className="content-wrap">
                 <div className="page-heading"><div><p className="eyebrow">SUNDAY, SEPTEMBER 20, 2026</p><h1>Good morning, Kyle <span>✦</span></h1><p className="subheading">Your cellar is humming. Here's what needs your attention.</p></div><button className="primary-button" onClick={() => setShowNewBatch(true)}><PlusIcon /> New batch</button></div>
 
@@ -99,7 +99,7 @@ function App() {
                   </section>
 
                   <aside className="right-column">
-                    <section className="panel attention-panel"><div className="panel-header"><div><h2>Next up</h2><p>Your cellar checklist</p></div><WrenchScrewdriverIcon className="header-icon" /></div><div className="checklist"><label><span className="check checked"><CheckCircleIcon /></span><span><strong>Log Saison gravity</strong><small>Due today · Citrus Saison</small></span></label><label><span className="check"><ClockIcon /></span><span><strong>Check mead nutrients</strong><small>In 2 hours · Blueberry Mead</small></span></label><label><span className="check"><FlaskIcon /></span><span><strong>Sanitize bottling gear</strong><small>Tomorrow · General</small></span></label></div><button className="full-button" onClick={() => setShowMeasurement(true)}>Log a measurement <PlusIcon /></button></section>
+                    <section className="panel attention-panel"><div className="panel-header"><div><h2>Next up</h2><p>Your cellar checklist</p></div><WrenchScrewdriverIcon className="header-icon" /></div><div className="checklist"><label><span className="check checked"><CheckCircleIcon /></span><span><strong>Log Saison gravity</strong><small>Due today · Citrus Saison</small></span></label><label><span className="check"><ClockIcon /></span><span><strong>Check mead nutrients</strong><small>In 2 hours · Blueberry Mead</small></span></label><label><span className="check"><BeakerIcon /></span><span><strong>Sanitize bottling gear</strong><small>Tomorrow · General</small></span></label></div><button className="full-button" onClick={() => setShowMeasurement(true)}>Log a measurement <PlusIcon /></button></section>
                     <section className="panel timer-panel"><div className="panel-header"><div><h2>Timers</h2><p>Keep your rhythm</p></div><ClockIcon className="header-icon" /></div>{timers.map((timer) => <div className="timer-row" key={timer.id}><span className={`timer-dot ${timer.color}`} /><span>{timer.label}</span><strong>{timer.remaining}</strong><button onClick={() => setTimers((current) => current.filter((item) => item.id !== timer.id))}><XMarkIcon /></button></div>)}<button className="add-inline timer-add" onClick={() => setTimers((current) => [...current, { id: Date.now(), label: 'New cellar timer', remaining: '24h 00m', color: 'sky' }])}><PlusIcon /> Start a timer</button></section>
                   </aside>
                 </div>
