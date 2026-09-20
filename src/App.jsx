@@ -23,6 +23,12 @@ function App() {
   const [recipeFilter, setRecipeFilter] = useState('All');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [recipeSource, setRecipeSource] = useState('AHA homebrew tutorials');
+  const [toolSearch, setToolSearch] = useState('');
+  const [journalEntry, setJournalEntry] = useState('');
+  const [journal, setJournal] = useState([
+    { date: 'SEP 20', text: 'Saison is bright and lively. Gravity is moving toward target.', tag: 'Citrus Saison' },
+    { date: 'SEP 18', text: 'Apple brandy rested cleanly after the first pass.', tag: 'Apple Brandy' },
+  ]);
   const [batchName, setBatchName] = useState('');
   const [batchType, setBatchType] = useState('Fermentation');
   const [measurement, setMeasurement] = useState({ gravity: '', temp: '' });
@@ -79,7 +85,7 @@ function App() {
     { name: 'Safety checklist', category: 'Safety', icon: ShieldCheckIcon, description: 'Ventilation, grounding, leak checks, and legal reminders.', action: 'Review checklist' },
   ];
   const toolCategories = ['All', 'Calculators', 'Methods', 'Equipment', 'Cellar', 'Safety'];
-  const visibleTools = tools.filter((tool) => toolFilter === 'All' || tool.category === toolFilter);
+  const visibleTools = tools.filter((tool) => (toolFilter === 'All' || tool.category === toolFilter) && `${tool.name} ${tool.description}`.toLowerCase().includes(toolSearch.toLowerCase()));
   const SelectedToolIcon = selectedTool?.icon || BeakerIcon;
   const runGuide = [
     ['1', 'Confirm legality and workspace', 'Check permits, local rules, ventilation, fire safety, and a sober adult operator. Never distill in an enclosed space.'],
@@ -112,6 +118,12 @@ function App() {
     ['wine', 'Wine making', SparklesIcon],
     ['timers', 'Timers', ClockIcon],
   ];
+  const addJournalEntry = (event) => {
+    event.preventDefault();
+    if (!journalEntry.trim()) return;
+    setJournal((current) => [{ date: 'TODAY', text: journalEntry.trim(), tag: 'Cellar journal' }, ...current]);
+    setJournalEntry('');
+  };
 
   return (
     <TaskProvider>
@@ -142,8 +154,14 @@ function App() {
 
                 <section className="panel toolbox-panel">
                   <div className="panel-header toolbox-header"><div><p className="eyebrow">THE DISTILLER'S TOOLBOX</p><h2>Every tool, every method, one place</h2><p>Choose a workflow and keep your notes connected to the batch.</p></div><div className="toolbox-badge"><SparklesIcon /><span>{tools.length} tools ready</span></div></div>
-                  <div className="tool-filters">{toolCategories.map((category) => <button key={category} className={toolFilter === category ? 'tool-filter active' : 'tool-filter'} onClick={() => setToolFilter(category)}>{category}</button>)}</div>
+                  <div className="tool-controls"><div className="tool-search"><InformationCircleIcon /><input aria-label="Search tools and methods" value={toolSearch} onChange={(event) => setToolSearch(event.target.value)} placeholder="Search tools, methods, equipment..." /></div><div className="tool-filters">{toolCategories.map((category) => <button key={category} className={toolFilter === category ? 'tool-filter active' : 'tool-filter'} onClick={() => setToolFilter(category)}>{category}</button>)}</div></div>
                   <div className="tool-grid">{visibleTools.map((tool) => { const Icon = tool.icon; return <button className="tool-card" key={tool.name} onClick={() => setSelectedTool(tool)}><span className="tool-icon"><Icon /></span><span className="tool-card-copy"><strong>{tool.name}</strong><small>{tool.description}</small><em>{tool.action} <ChevronRightIcon /></em></span></button>; })}</div>
+                </section>
+
+                <section className="command-grid">
+                  <section className="panel inventory-panel"><div className="panel-header"><div><p className="eyebrow">CELLAR INVENTORY</p><h2>Know what you have</h2><p>Supplies to check before the next run</p></div><BeakerIcon className="header-icon" /></div><div className="inventory-list"><div><span className="inventory-dot good" /><span>Fermentation vessels</span><strong>6 / 8 ready</strong></div><div><span className="inventory-dot low" /><span>Hydrometer & test jars</span><strong>2 need cleaning</strong></div><div><span className="inventory-dot good" /><span>Yeast & nutrients</span><strong>8 in stock</strong></div><div><span className="inventory-dot warn" /><span>Bottles & closures</span><strong>Low · 24 left</strong></div></div><button className="text-button">Open full inventory <ChevronRightIcon /></button></section>
+                  <section className="panel journal-panel"><div className="panel-header"><div><p className="eyebrow">BATCH JOURNAL</p><h2>Keep the living record</h2><p>Small notes make better batches</p></div><BookOpenIcon className="header-icon" /></div><div className="journal-list">{journal.slice(0, 2).map((entry) => <div className="journal-entry" key={`${entry.date}-${entry.text}`}><span>{entry.date}</span><p>{entry.text}<small>{entry.tag}</small></p></div>)}</div><form className="journal-form" onSubmit={addJournalEntry}><input aria-label="Add journal note" value={journalEntry} onChange={(event) => setJournalEntry(event.target.value)} placeholder="Add a quick cellar note..." /><button aria-label="Save journal note" type="submit"><PlusIcon /></button></form></section>
+                  <section className="panel week-panel"><div className="panel-header"><div><p className="eyebrow">THIS WEEK</p><h2>Your cellar rhythm</h2><p>Three small wins add up</p></div><ClockIcon className="header-icon" /></div><div className="week-plan"><div><span>MON</span><strong>Check gravity</strong><small>Saison · 5 min</small></div><div><span>WED</span><strong>Rack fruit wine</strong><small>Blackberry · 20 min</small></div><div><span>SAT</span><strong>Sanitize gear</strong><small>Before the run · 15 min</small></div></div></section>
                 </section>
 
                 <div className="master-grid">
