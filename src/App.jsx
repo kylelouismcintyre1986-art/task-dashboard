@@ -18,6 +18,7 @@ function App() {
   const [showRunPlanner, setShowRunPlanner] = useState(false);
   const [toolFilter, setToolFilter] = useState('All');
   const [selectedTool, setSelectedTool] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
   const [batchName, setBatchName] = useState('');
   const [batchType, setBatchType] = useState('Fermentation');
   const [measurement, setMeasurement] = useState({ gravity: '', temp: '' });
@@ -76,6 +77,16 @@ function App() {
   const toolCategories = ['All', 'Calculators', 'Methods', 'Equipment', 'Cellar', 'Safety'];
   const visibleTools = tools.filter((tool) => toolFilter === 'All' || tool.category === toolFilter);
   const SelectedToolIcon = selectedTool?.icon || BeakerIcon;
+  const runGuide = [
+    ['1', 'Confirm legality and workspace', 'Check permits, local rules, ventilation, fire safety, and a sober adult operator. Never distill in an enclosed space.'],
+    ['2', 'Sanitize and stage equipment', 'Clean and sanitize vessels, hydrometer, thermometer, collection jars, labels, PPE, and spill supplies. Inspect seals and cooling-water lines.'],
+    ['3', 'Prepare the wash', 'Record recipe, ingredients, volume, starting gravity, pH, and yeast. Keep the fermenter covered and temperature-controlled.'],
+    ['4', 'Ferment to a stable finish', 'Keep the yeast in its manufacturer-recommended range, usually around 64–72°F for many ale strains. Confirm gravity is unchanged for 48 hours before proceeding.'],
+    ['5', 'Plan the run', 'Record expected volume and proof, label collection vessels, and define discard/cut notes before heating. Follow the still manufacturer manual for every control.'],
+    ['6', 'Operate and monitor', 'Use a calibrated thermometer and never leave the still unattended. Log time, vapor/boiler readings, proof, aroma, and jar number. Do not seal a still or block a vent.'],
+    ['7', 'Separate and proof safely', 'Keep fractions clearly labeled, allow spirit to rest, and use a proofing calculator with measured ABV. Add water slowly and let the blend settle before bottling.'],
+    ['8', 'Rest, bottle, and archive', 'Use food-safe containers, record final volume and ABV, date the bottle, and store away from heat. Clean, dry, and inspect equipment after the run.'],
+  ];
 
   const navItems = [
     ['overview', 'Overview', HomeIcon],
@@ -102,6 +113,7 @@ function App() {
               <header className="topbar"><div className="mobile-brand"><div className="brand-mark"><BeakerIcon /></div><strong>stillroom</strong></div><div className="topbar-actions"><button className="icon-button"><InformationCircleIcon /></button><button className="avatar top-avatar">KL</button></div></header>
               <div className="content-wrap">
                 <div className="page-heading"><div><p className="eyebrow">MASTER DISTILLER · SUNDAY, SEPTEMBER 20, 2026</p><h1>Good morning, Kyle <span>✦</span></h1><p className="subheading">Plan the run, make the cuts, and know exactly what is in your cellar.</p></div><div className="heading-actions"><button className="secondary-button" onClick={() => setShowRunPlanner(true)}><FireIcon /> Plan a run</button><button className="primary-button" onClick={() => setShowNewBatch(true)}><PlusIcon /> New batch</button></div></div>
+                <button className="guide-launch" onClick={() => setShowGuide(true)}><div className="guide-launch-icon"><BookOpenIcon /></div><div><strong>Run guide: from ingredients to bottle</strong><span>Step-by-step checklist with temperatures, measurements, equipment, and safety gates</span></div><ChevronRightIcon /></button>
 
                 <section className="stats-grid">
                   <div className="stat-card accent-amber"><div className="stat-icon"><BeakerIcon /></div><div><span>Active batches</span><strong>{activeBatches}</strong><small>+1 this week</small></div></div>
@@ -146,6 +158,9 @@ function App() {
 
                 <section className="guidance-banner"><div className="guidance-icon"><ShieldCheckIcon /></div><div><strong>Make it safely, make it legal.</strong><p>Distilling alcohol may require permits in your area. Always check local regulations, use food-safe equipment, and never distill indoors without proper ventilation.</p></div><button onClick={() => setActiveTab('recipes')}>Read the guide <ChevronRightIcon /></button></section>
               </div>
+              <AnimatePresence>
+                {showGuide && <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={() => setShowGuide(false)}><motion.div className="modal guide-modal" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 18 }} onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowGuide(false)}><XMarkIcon /></button><p className="eyebrow">MASTER RUN GUIDE</p><h2>From ingredients to bottle</h2><p className="modal-copy">A practical record-keeping workflow for a legal, ventilated, food-safe run. Exact distillation controls vary by equipment: use the manufacturer manual for heat and coolant settings.</p><div className="guide-steps">{runGuide.map(([number, title, copy]) => <div className="guide-step" key={number}><span>{number}</span><div><strong>{title}</strong><p>{copy}</p></div></div>)}</div><div className="guide-supplies"><strong>Stage before you start</strong><p>Recipe ingredients · yeast and nutrients · sanitized fermenter · hydrometer · calibrated thermometer · pH strips or meter · still and condenser · food-safe collection jars · labels and marker · gloves and eye protection · fire extinguisher · proofing calculator.</p></div><button className="primary-button modal-submit" onClick={() => setShowGuide(false)}>Start a guided run <ChevronRightIcon /></button></motion.div></motion.div>}
+              </AnimatePresence>
               <AnimatePresence>
                 {selectedTool && <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={() => setSelectedTool(null)}><motion.div className="modal tool-modal" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 18 }} onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setSelectedTool(null)}><XMarkIcon /></button><span className="tool-icon large"><SelectedToolIcon /></span><p className="eyebrow">{selectedTool.category}</p><h2>{selectedTool.name}</h2><p className="modal-copy">{selectedTool.description}</p><div className="method-note"><ShieldCheckIcon /><span>Use food-safe equipment, document each reading, and follow your local regulations before operating a still.</span></div><button className="primary-button modal-submit" onClick={() => setSelectedTool(null)}>Add to workspace <PlusIcon /></button></motion.div></motion.div>}
               </AnimatePresence>
