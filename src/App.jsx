@@ -15,9 +15,13 @@ function App() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showNewBatch, setShowNewBatch] = useState(false);
   const [showMeasurement, setShowMeasurement] = useState(false);
+  const [showRunPlanner, setShowRunPlanner] = useState(false);
+  const [toolFilter, setToolFilter] = useState('All');
+  const [selectedTool, setSelectedTool] = useState(null);
   const [batchName, setBatchName] = useState('');
   const [batchType, setBatchType] = useState('Fermentation');
   const [measurement, setMeasurement] = useState({ gravity: '', temp: '' });
+  const [runPlan, setRunPlan] = useState({ wash: 'Apple brandy wash', volume: '12', startingAbv: '10', targetAbv: '40' });
   const [batches, setBatches] = useState([
     { id: 1, name: 'Citrus Saison', type: 'Fermentation', status: 'Active', day: 8, total: 14, gravity: '1.012', target: '1.008', temp: '68°F', note: 'Bright and lively · airlock active', color: 'amber' },
     { id: 2, name: 'Blueberry Mead', type: 'Fermentation', status: 'Active', day: 21, total: 45, gravity: '1.038', target: '1.010', temp: '64°F', note: 'Slow and steady · nutrient day 3', color: 'violet' },
@@ -54,6 +58,25 @@ function App() {
     setShowMeasurement(false);
   };
 
+  const plannedOutput = Math.max(0, ((Number(runPlan.volume) || 0) * (Number(runPlan.startingAbv) || 0) / (Number(runPlan.targetAbv) || 1))).toFixed(1);
+  const tools = [
+    { name: 'ABV calculator', category: 'Calculators', icon: ScaleIcon, description: 'Estimate alcohol from original and final gravity.', action: 'Open calculator' },
+    { name: 'Proof & dilution', category: 'Calculators', icon: BeakerIcon, description: 'Bring spirit to bottling proof with precision.', action: 'Open calculator' },
+    { name: 'Heads / hearts / tails', category: 'Methods', icon: FireIcon, description: 'Log cuts by jar, proof, aroma, and taste.', action: 'Start cut log' },
+    { name: 'Pot still run', category: 'Methods', icon: WrenchScrewdriverIcon, description: 'A slow, expressive run for flavor-forward spirits.', action: 'View method' },
+    { name: 'Reflux run', category: 'Methods', icon: SparklesIcon, description: 'Increase purity with controlled reflux and plates.', action: 'View method' },
+    { name: 'Fermentation schedule', category: 'Methods', icon: ClockIcon, description: 'Plan pitch, nutrients, degas, and terminal gravity.', action: 'Build schedule' },
+    { name: 'Hydrometer', category: 'Equipment', icon: ScaleIcon, description: 'Track gravity before, during, and after fermentation.', action: 'Log reading' },
+    { name: 'pH meter', category: 'Equipment', icon: BeakerIcon, description: 'Keep mash and fermentation in a healthy range.', action: 'Log reading' },
+    { name: 'Thermometer', category: 'Equipment', icon: FireIcon, description: 'Monitor mash rests, boiler heat, and condenser output.', action: 'Log reading' },
+    { name: 'Barrel & aging', category: 'Cellar', icon: BookOpenIcon, description: 'Track fill date, toast, warehouse, and tasting notes.', action: 'Add vessel' },
+    { name: 'Bottle inventory', category: 'Cellar', icon: CheckCircleIcon, description: 'Know your glass, closures, labels, and finished stock.', action: 'Open inventory' },
+    { name: 'Safety checklist', category: 'Safety', icon: ShieldCheckIcon, description: 'Ventilation, grounding, leak checks, and legal reminders.', action: 'Review checklist' },
+  ];
+  const toolCategories = ['All', 'Calculators', 'Methods', 'Equipment', 'Cellar', 'Safety'];
+  const visibleTools = tools.filter((tool) => toolFilter === 'All' || tool.category === toolFilter);
+  const SelectedToolIcon = selectedTool?.icon || BeakerIcon;
+
   const navItems = [
     ['overview', 'Overview', HomeIcon],
     ['batches', 'Batches', BeakerIcon],
@@ -78,7 +101,7 @@ function App() {
             <main className="main-content">
               <header className="topbar"><div className="mobile-brand"><div className="brand-mark"><BeakerIcon /></div><strong>stillroom</strong></div><div className="topbar-actions"><button className="icon-button"><InformationCircleIcon /></button><button className="avatar top-avatar">KL</button></div></header>
               <div className="content-wrap">
-                <div className="page-heading"><div><p className="eyebrow">SUNDAY, SEPTEMBER 20, 2026</p><h1>Good morning, Kyle <span>✦</span></h1><p className="subheading">Your cellar is humming. Here's what needs your attention.</p></div><button className="primary-button" onClick={() => setShowNewBatch(true)}><PlusIcon /> New batch</button></div>
+                <div className="page-heading"><div><p className="eyebrow">MASTER DISTILLER · SUNDAY, SEPTEMBER 20, 2026</p><h1>Good morning, Kyle <span>✦</span></h1><p className="subheading">Plan the run, make the cuts, and know exactly what is in your cellar.</p></div><div className="heading-actions"><button className="secondary-button" onClick={() => setShowRunPlanner(true)}><FireIcon /> Plan a run</button><button className="primary-button" onClick={() => setShowNewBatch(true)}><PlusIcon /> New batch</button></div></div>
 
                 <section className="stats-grid">
                   <div className="stat-card accent-amber"><div className="stat-icon"><BeakerIcon /></div><div><span>Active batches</span><strong>{activeBatches}</strong><small>+1 this week</small></div></div>
@@ -86,6 +109,23 @@ function App() {
                   <div className="stat-card accent-violet"><div className="stat-icon"><ScaleIcon /></div><div><span>Avg. completion</span><strong>{progress}%</strong><small>Across all batches</small></div></div>
                   <div className="stat-card accent-sky"><div className="stat-icon"><SparklesIcon /></div><div><span>Cellar streak</span><strong>12 <small>days</small></strong><small>Keep it going</small></div></div>
                 </section>
+
+                <section className="panel toolbox-panel">
+                  <div className="panel-header toolbox-header"><div><p className="eyebrow">THE DISTILLER'S TOOLBOX</p><h2>Every tool, every method, one place</h2><p>Choose a workflow and keep your notes connected to the batch.</p></div><div className="toolbox-badge"><SparklesIcon /><span>{tools.length} tools ready</span></div></div>
+                  <div className="tool-filters">{toolCategories.map((category) => <button key={category} className={toolFilter === category ? 'tool-filter active' : 'tool-filter'} onClick={() => setToolFilter(category)}>{category}</button>)}</div>
+                  <div className="tool-grid">{visibleTools.map((tool) => { const Icon = tool.icon; return <button className="tool-card" key={tool.name} onClick={() => setSelectedTool(tool)}><span className="tool-icon"><Icon /></span><span className="tool-card-copy"><strong>{tool.name}</strong><small>{tool.description}</small><em>{tool.action} <ChevronRightIcon /></em></span></button>; })}</div>
+                </section>
+
+                <div className="master-grid">
+                  <section className="panel run-panel">
+                    <div className="panel-header"><div><h2>Next distillation run</h2><p>Apple Brandy · spirit run</p></div><span className="status-live"><i /> READY</span></div>
+                    <div className="run-hero"><div className="still-illustration"><div className="still-pot" /><div className="still-neck" /><div className="still-arm" /><div className="still-drop" /></div><div className="run-readiness"><span className="eyebrow">EQUIPMENT READINESS</span><strong>92%</strong><div className="progress-track"><div className="progress-fill emerald" style={{ width: '92%' }} /></div><p>All critical checks passed</p></div></div>
+                    <div className="run-metrics"><div><span>Wash volume</span><strong>18.0 L</strong></div><div><span>Est. hearts</span><strong>2.4 L</strong></div><div><span>Starting ABV</span><strong>10.8%</strong></div><div><span>Target proof</span><strong>80 proof</strong></div></div>
+                    <div className="run-checks"><span><CheckCircleIcon /> Still sanitized</span><span><CheckCircleIcon /> Collection jars labeled</span><span><ClockIcon /> 4h 20m est.</span></div>
+                    <button className="full-button run-button" onClick={() => setShowRunPlanner(true)}>Open run planner <ChevronRightIcon /></button>
+                  </section>
+                  <section className="panel cuts-panel"><div className="panel-header"><div><h2>Cut planner</h2><p>Make clean, repeatable decisions</p></div><ScaleIcon className="header-icon" /></div><div className="cut-dial"><div className="dial-ring"><strong>80</strong><span>PROOF</span></div><div className="cut-copy"><span>Current collection</span><strong>1.2 L</strong><small>at 78.4% ABV</small></div></div><div className="cut-bar"><span className="heads" style={{ width: '9%' }} /><span className="hearts" style={{ width: '63%' }} /><span className="tails" style={{ width: '28%' }} /></div><div className="cut-legend"><span><i className="heads" /> Heads <strong>0.2 L</strong></span><span><i className="hearts" /> Hearts <strong>1.2 L</strong></span><span><i className="tails" /> Tails <strong>0.5 L</strong></span></div><button className="text-button" onClick={() => setShowMeasurement(true)}>Log a proof reading <ChevronRightIcon /></button></section>
+                </div>
 
                 <div className="dashboard-grid">
                   <section className="panel batches-panel">
@@ -107,10 +147,14 @@ function App() {
                 <section className="guidance-banner"><div className="guidance-icon"><ShieldCheckIcon /></div><div><strong>Make it safely, make it legal.</strong><p>Distilling alcohol may require permits in your area. Always check local regulations, use food-safe equipment, and never distill indoors without proper ventilation.</p></div><button onClick={() => setActiveTab('recipes')}>Read the guide <ChevronRightIcon /></button></section>
               </div>
               <AnimatePresence>
+                {selectedTool && <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={() => setSelectedTool(null)}><motion.div className="modal tool-modal" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 18 }} onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setSelectedTool(null)}><XMarkIcon /></button><span className="tool-icon large"><SelectedToolIcon /></span><p className="eyebrow">{selectedTool.category}</p><h2>{selectedTool.name}</h2><p className="modal-copy">{selectedTool.description}</p><div className="method-note"><ShieldCheckIcon /><span>Use food-safe equipment, document each reading, and follow your local regulations before operating a still.</span></div><button className="primary-button modal-submit" onClick={() => setSelectedTool(null)}>Add to workspace <PlusIcon /></button></motion.div></motion.div>}
+              </AnimatePresence>
+              <AnimatePresence>
                 {(showNewBatch || showMeasurement) && <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={() => { setShowNewBatch(false); setShowMeasurement(false); }}>
                   <motion.div className="modal" initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18 }} onMouseDown={(event) => event.stopPropagation()}>
                     <button className="modal-close" onClick={() => { setShowNewBatch(false); setShowMeasurement(false); }}><XMarkIcon /></button>
                     {showNewBatch ? <form onSubmit={addBatch}><p className="eyebrow">CELLAR SETUP</p><h2>Start a new batch</h2><p className="modal-copy">Give your next project a name and choose the process you’re tracking.</p><label>Batch name<input autoFocus value={batchName} onChange={(event) => setBatchName(event.target.value)} placeholder="e.g. Ginger saison" /></label><label>Process<select value={batchType} onChange={(event) => setBatchType(event.target.value)}><option>Fermentation</option><option>Distillation</option></select></label><button className="primary-button modal-submit" type="submit">Create batch <ChevronRightIcon /></button></form>
+                      : showRunPlanner ? <form onSubmit={(event) => { event.preventDefault(); setShowRunPlanner(false); }}><p className="eyebrow">DISTILLATION WORKBENCH</p><h2>Plan a spirit run</h2><p className="modal-copy">Use this estimate to set expectations before heating. Always follow your equipment manual and local regulations.</p><label>Wash or mash<input autoFocus value={runPlan.wash} onChange={(event) => setRunPlan({ ...runPlan, wash: event.target.value })} /></label><div className="form-row"><label>Volume (L)<input inputMode="decimal" value={runPlan.volume} onChange={(event) => setRunPlan({ ...runPlan, volume: event.target.value })} /></label><label>Starting ABV<input inputMode="decimal" value={runPlan.startingAbv} onChange={(event) => setRunPlan({ ...runPlan, startingAbv: event.target.value })} /></label></div><label>Target ABV<input inputMode="decimal" value={runPlan.targetAbv} onChange={(event) => setRunPlan({ ...runPlan, targetAbv: event.target.value })} /></label><div className="estimate-box"><span>Estimated neutral-equivalent output</span><strong>{plannedOutput} L</strong><small>Before cuts, losses, and proofing</small></div><button className="primary-button modal-submit" type="submit">Save run plan <CheckCircleIcon /></button></form>
                       : <form onSubmit={addMeasurement}><p className="eyebrow">CITRUS SAISON</p><h2>Log a measurement</h2><p className="modal-copy">Record the latest reading so you can spot trends over time.</p><label>Specific gravity<input autoFocus inputMode="decimal" value={measurement.gravity} onChange={(event) => setMeasurement({ ...measurement, gravity: event.target.value })} placeholder="e.g. 1.012" /></label><label>Temperature <span className="optional">(optional)</span><input inputMode="numeric" value={measurement.temp} onChange={(event) => setMeasurement({ ...measurement, temp: event.target.value })} placeholder="°F" /></label><button className="primary-button modal-submit" type="submit">Save measurement <CheckCircleIcon /></button></form>}
                   </motion.div>
                 </motion.div>}
