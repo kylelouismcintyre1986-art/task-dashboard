@@ -9,6 +9,8 @@ import {
 import { TaskProvider } from './context/TaskContext';
 import { TagProvider } from './context/TagContext';
 import { ListProvider } from './context/ListContext';
+import { createBatch } from './features/batches/batchService';
+import { predictYield } from './services/yieldPredictionService';
 
 
 function App() {
@@ -33,6 +35,8 @@ function App() {
   const [batchType, setBatchType] = useState('Fermentation');
   const [measurement, setMeasurement] = useState({ gravity: '', temp: '' });
   const [runPlan, setRunPlan] = useState({ wash: 'Apple brandy wash', volume: '12', startingAbv: '10', targetAbv: '40' });
+  const [batchError, setBatchError] = useState('');
+  const [yieldState, setYieldState] = useState({ loading: false, result: null, error: '' });
   const [batches, setBatches] = useState([
     { id: 1, name: 'Citrus Saison', type: 'Fermentation', status: 'Active', day: 8, total: 14, gravity: '1.012', target: '1.008', temp: '68°F', note: 'Bright and lively · airlock active', color: 'amber' },
     { id: 2, name: 'Blueberry Mead', type: 'Fermentation', status: 'Active', day: 21, total: 45, gravity: '1.038', target: '1.010', temp: '64°F', note: 'Slow and steady · nutrient day 3', color: 'violet' },
@@ -49,13 +53,20 @@ function App() {
   const addBatch = (event) => {
     event.preventDefault();
     if (!batchName.trim()) return;
-    setBatches((current) => [...current, {
-      id: Date.now(), name: batchName.trim(), type: batchType, status: 'Active', day: 1,
-      total: batchType === 'Distillation' ? 10 : 14, gravity: batchType === 'Distillation' ? '—' : '1.050',
-      target: batchType === 'Distillation' ? '80.0%' : '1.010', temp: '68°F',
-      note: 'New batch · add a measurement when ready', color: batchType === 'Distillation' ? 'sky' : 'emerald',
-    }]);
+    try {
+      const savedBatch = createBatch({ name: batchName, process: batchType, volumeLitres: 18 });
+      setBatches((current) => [...current, {
+        id: savedBatch.id, name: savedBatch.name, type: savedBatch.process, status: 'Active', day: 1,
+        total: batchType === 'Distillation' ? 10 : 14, gravity: batchType === 'Distillation' ? '—' : '1.050',
+        target: batchType === 'Distillation' ? '80.0%' : '1.010', temp: '68°F',
+        note: 'New batch · saved locally · add a measurement when ready', color: batchType === 'Distillation' ? 'sky' : 'emerald',
+      }]);
+    } catch (error) {
+      setBatchError(error.message);
+      return;
+    }
     setBatchName('');
+    setBatchError('');
     setShowNewBatch(false);
   };
 
@@ -67,6 +78,21 @@ function App() {
       : batch));
     setMeasurement({ gravity: '', temp: '' });
     setShowMeasurement(false);
+  };
+
+  const runYieldPrediction = async (event) => {
+    event.preventDefault();
+    setYieldState({ loading: true, result: null, error: '' });
+    try {
+      const result = await predictYield({
+        volumeLitres: Number(runPlan.volume),
+        startingAbv: Number(runPlan.startingAbv),
+        targetAbv: Number(runPlan.targetAbv),
+      });
+      setYieldState({ loading: false, result, error: '' });
+    } catch (error) {
+      setYieldState({ loading: false, result: null, error: error.message });
+    }
   };
 
   const plannedOutput = Math.max(0, ((Number(runPlan.volume) || 0) * (Number(runPlan.startingAbv) || 0) / (Number(runPlan.targetAbv) || 1))).toFixed(1);
@@ -210,8 +236,8 @@ function App() {
                 {(showNewBatch || showMeasurement) && <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={() => { setShowNewBatch(false); setShowMeasurement(false); }}>
                   <motion.div className="modal" initial={{ opacity: 0, y: 18, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18 }} onMouseDown={(event) => event.stopPropagation()}>
                     <button className="modal-close" onClick={() => { setShowNewBatch(false); setShowMeasurement(false); }}><XMarkIcon /></button>
-                    {showNewBatch ? <form onSubmit={addBatch}><p className="eyebrow">CELLAR SETUP</p><h2>Start a new batch</h2><p className="modal-copy">Give your next project a name and choose the process you’re tracking.</p><label>Batch name<input autoFocus value={batchName} onChange={(event) => setBatchName(event.target.value)} placeholder="e.g. Ginger saison" /></label><label>Process<select value={batchType} onChange={(event) => setBatchType(event.target.value)}><option>Fermentation</option><option>Distillation</option></select></label><button className="primary-button modal-submit" type="submit">Create batch <ChevronRightIcon /></button></form>
-                      : showRunPlanner ? <form onSubmit={(event) => { event.preventDefault(); setShowRunPlanner(false); }}><p className="eyebrow">DISTILLATION WORKBENCH</p><h2>Plan a spirit run</h2><p className="modal-copy">Use this estimate to set expectations before heating. Always follow your equipment manual and local regulations.</p><label>Wash or mash<input autoFocus value={runPlan.wash} onChange={(event) => setRunPlan({ ...runPlan, wash: event.target.value })} /></label><div className="form-row"><label>Volume (L)<input inputMode="decimal" value={runPlan.volume} onChange={(event) => setRunPlan({ ...runPlan, volume: event.target.value })} /></label><label>Starting ABV<input inputMode="decimal" value={runPlan.startingAbv} onChange={(event) => setRunPlan({ ...runPlan, startingAbv: event.target.value })} /></label></div><label>Target ABV<input inputMode="decimal" value={runPlan.targetAbv} onChange={(event) => setRunPlan({ ...runPlan, targetAbv: event.target.value })} /></label><div className="estimate-box"><span>Estimated neutral-equivalent output</span><strong>{plannedOutput} L</strong><small>Before cuts, losses, and proofing</small></div><button className="primary-button modal-submit" type="submit">Save run plan <CheckCircleIcon /></button></form>
+                    {showNewBatch ? <form onSubmit={addBatch}><p className="eyebrow">CELLAR SETUP</p><h2>Start a new batch</h2><p className="modal-copy">Give your next project a name and choose the process you’re tracking.</p><label>Batch name<input autoFocus value={batchName} onChange={(event) => setBatchName(event.target.value)} placeholder="e.g. Ginger saison" /></label><label>Process<select value={batchType} onChange={(event) => setBatchType(event.target.value)}><option>Fermentation</option><option>Distillation</option><option>Aging</option></select></label>{batchError && <p className="form-error" role="alert">{batchError}</p>}<button className="primary-button modal-submit" type="submit">Create batch <ChevronRightIcon /></button></form>
+                      : showRunPlanner ? <form onSubmit={(event) => { event.preventDefault(); setShowRunPlanner(false); }}><p className="eyebrow">DISTILLATION WORKBENCH</p><h2>Plan a spirit run</h2><p className="modal-copy">Use this estimate to set expectations before heating. Always follow your equipment manual and local regulations.</p><label>Wash or mash<input autoFocus value={runPlan.wash} onChange={(event) => setRunPlan({ ...runPlan, wash: event.target.value })} /></label><div className="form-row"><label>Volume (L)<input inputMode="decimal" value={runPlan.volume} onChange={(event) => setRunPlan({ ...runPlan, volume: event.target.value })} /></label><label>Starting ABV<input inputMode="decimal" value={runPlan.startingAbv} onChange={(event) => setRunPlan({ ...runPlan, startingAbv: event.target.value })} /></label></div><label>Target ABV<input inputMode="decimal" value={runPlan.targetAbv} onChange={(event) => setRunPlan({ ...runPlan, targetAbv: event.target.value })} /></label><div className="estimate-box"><span>Estimated neutral-equivalent output</span><strong>{yieldState.result?.estimatedLitres || `${plannedOutput} L`}</strong><small>{yieldState.result ? 'AI service estimate' : 'Local planning estimate · before cuts, losses, and proofing'}</small></div>{yieldState.error && <p className="form-error" role="alert">{yieldState.error}</p>}<button className="secondary-button modal-submit" type="button" onClick={runYieldPrediction} disabled={yieldState.loading}>{yieldState.loading ? 'Predicting...' : 'Predict yield with AI'}</button><button className="primary-button modal-submit" type="submit">Save run plan <CheckCircleIcon /></button></form>
                       : <form onSubmit={addMeasurement}><p className="eyebrow">CITRUS SAISON</p><h2>Log a measurement</h2><p className="modal-copy">Record the latest reading so you can spot trends over time.</p><label>Specific gravity<input autoFocus inputMode="decimal" value={measurement.gravity} onChange={(event) => setMeasurement({ ...measurement, gravity: event.target.value })} placeholder="e.g. 1.012" /></label><label>Temperature <span className="optional">(optional)</span><input inputMode="numeric" value={measurement.temp} onChange={(event) => setMeasurement({ ...measurement, temp: event.target.value })} placeholder="°F" /></label><button className="primary-button modal-submit" type="submit">Save measurement <CheckCircleIcon /></button></form>}
                   </motion.div>
                 </motion.div>}
