@@ -1,10 +1,17 @@
-# Task Dashboard
+# FermentationLab Pro
 
-A task management application that allows users to create, organize, and filter tasks using a modern, responsive UI built with React.
+A production operations workspace for fermentation and distillation teams, with the original task dashboard retained under **Operations**.
 
 > **Note:** This application is intended for demonstration purposes only and is not meant for production use.
 
 ## Features
+
+- **Production dashboard**: facility health, yield forecast, revenue forecast, live alerts, and production overview
+- **Batch manager**: fermentation, distillation, and aging stages with gravity, temperature, and yield data
+- **Recipe builder**: ingredient bills, recipe versioning, batch estimates, AI confidence, and export actions
+- **Distillation tracker**: heads/hearts/tails collection, proof tracking, and cut recommendations
+- **AI copilot**: production questions and actionable recommendations
+- **Supabase foundation**: environment-aware client, password authentication flow, data access helper, and PostgreSQL/RLS migration
 
 - **Task Management**: Create, complete, and delete tasks
 - **Task Tags**: Organize tasks with customizable tags
@@ -12,6 +19,17 @@ A task management application that allows users to create, organize, and filter 
 - **List Filters**: Filter tasks by tags or completion status
 - **Animations**: Smooth transitions and animations using Framer Motion
 - **Responsive Design**: Works on desktop and mobile devices
+- **Windows desktop app**: Electron wrapper with secure renderer isolation and NSIS installer packaging
+
+## Supabase setup
+
+The app runs with local demo data when Supabase is not configured. To connect a project:
+
+1. Create `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+2. Install the Supabase CLI, link the project, and run `supabase db push` to apply `supabase/migrations/20260921000000_initial_schema.sql`.
+3. Enable email/password authentication in Supabase Auth. The app exposes the sign-in flow when both environment variables are present.
+
+PDF generation, QR/NFC scanning, push notifications, and live hardware sensor ingestion are intentionally integration points in this web slice. They require a storage bucket, camera/native capabilities, notification provider, and sensor gateway respectively.
 
 ## Technology Stack
 
@@ -48,6 +66,23 @@ A task management application that allows users to create, organize, and filter 
 
 4. Open [http://localhost:3000](http://localhost:3000) to view the app
 
+### Run as a Windows desktop app
+
+Install dependencies, then run the Electron development wrapper:
+
+```bash
+npm install
+npm run desktop
+```
+
+The desktop development command starts Vite on port 3000 and opens the renderer in an Electron window. For a production Windows installer:
+
+```bash
+npm run build:desktop
+```
+
+The NSIS installer is written to `dist-electron/` by `electron-builder`. The packaged app loads the local Vite build from `dist/`; it does not require a development server.
+
 ### Available Scripts
 
 - `npm start` - Start the development server
@@ -58,6 +93,8 @@ A task management application that allows users to create, organize, and filter 
 - `npm run preview` - Preview the production build locally
 - `npm run preview:hydrated` - Preview the production build with data hydration enabled
 - `npm test` - Run tests with Vitest
+- `npm run desktop` - Run the app in Electron against the Vite development server
+- `npm run build:desktop` - Build the renderer and package a Windows NSIS installer
 
 ### Data Hydration
 
