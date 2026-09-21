@@ -131,7 +131,7 @@ function App() {
         <ListProvider>
           <div className="app-shell" data-testid="app">
             <aside className="sidebar">
-              <div className="brand"><div className="brand-mark"><BeakerIcon /></div><div><strong>stillroom</strong><span>fermentation studio</span></div></div>
+              <div className="brand"><div className="brand-mark"><BeakerIcon /></div><div><strong>FermentationLab Pro</strong><span>fermentation & distilling lab</span></div></div>
               <div className="sidebar-label">Workspace</div>
               <nav>{navItems.map(([key, label, Icon]) => <button key={key} className={activeTab === key ? 'nav-item active' : 'nav-item'} onClick={() => { setActiveTab(key); if (key === 'recipes' || key === 'beer' || key === 'wine') { setRecipeSource(key === 'beer' ? 'American Homebrewers Association' : key === 'wine' ? 'AWRI wine industry resources' : 'Moonshine studio'); setRecipeFilter(key === 'beer' ? 'Beer' : key === 'wine' ? 'Wine' : 'All'); setShowRecipes(true); } }}><Icon /><span>{label}</span>{key === 'batches' && <em>{batches.length}</em>}</button>)}</nav>
               <div className="sidebar-spacer" />
@@ -140,7 +140,7 @@ function App() {
             </aside>
 
             <main className="main-content">
-              <header className="topbar"><div className="mobile-brand"><div className="brand-mark"><BeakerIcon /></div><strong>stillroom</strong></div><div className="topbar-actions"><button className="icon-button"><InformationCircleIcon /></button><button className="avatar top-avatar">KL</button></div></header>
+              <header className="topbar"><div className="mobile-brand"><div className="brand-mark"><BeakerIcon /></div><strong>FermentationLab Pro</strong></div><div className="topbar-actions"><button className="icon-button"><InformationCircleIcon /></button><button className="avatar top-avatar">KL</button></div></header>
               <div className="content-wrap">
                 <div className="page-heading"><div><p className="eyebrow">MASTER DISTILLER · SUNDAY, SEPTEMBER 20, 2026</p><h1>Good morning, Kyle <span>✦</span></h1><p className="subheading">Plan the run, make the cuts, and know exactly what is in your cellar.</p></div><div className="heading-actions"><button className="secondary-button" onClick={() => setShowRunPlanner(true)}><FireIcon /> Plan a run</button><button className="primary-button" onClick={() => setShowNewBatch(true)}><PlusIcon /> New batch</button></div></div>
                 <div className="feature-launches"><button className="guide-launch" onClick={() => setShowGuide(true)}><div className="guide-launch-icon"><BookOpenIcon /></div><div><strong>Run guide: from ingredients to bottle</strong><span>Step-by-step checklist with temperatures, measurements, equipment, and safety gates</span></div><ChevronRightIcon /></button><button className="guide-launch recipe-launch" onClick={() => setShowRecipes(true)}><div className="guide-launch-icon"><SparklesIcon /></div><div><strong>Moonshine recipe library</strong><span>Classic corn, fruit brandy, rye wash, and legal infusion walkthroughs</span></div><ChevronRightIcon /></button></div>
