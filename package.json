@@ -19,8 +19,8 @@
     "@adobe/css-tools": "^4.3.1"
   },
   "scripts": {
-    "start": "BROWSER=none WDS_SOCKET_PORT=0 vite --port 3000",
-    "start:hydrated": "VITE_ENABLE_DATA_HYDRATION=true BROWSER=none WDS_SOCKET_PORT=0 vite --port 3000",
+    "start": "vite --port 3000",
+    "start:hydrated": "vite --port 3000",
     "build": "vite build",
     "build:hydrated": "VITE_ENABLE_DATA_HYDRATION=true vite build",
     "build:clean": "VITE_ENABLE_DATA_HYDRATION=false vite build",
